@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-User Login Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom smooth scroll and transitions */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        .login-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        }
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out forwards;
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header -->
+    <div id="login-header" class="text-center mb-10 mt-10 transition-all duration-500">
+        <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">System Access Portal</h1>
+        <p class="text-slate-200 drop-shadow-md">Please select your role to log in</p>
+    </div>
+
+    <!-- Notification Toast (Hidden by default) -->
+    <div id="toast" class="fixed top-5 right-5 bg-white border-l-4 border-green-500 text-slate-800 px-6 py-4 shadow-xl rounded opacity-0 transition-all duration-300 pointer-events-none z-[70] flex items-center gap-3 transform -translate-y-full">
+        <i id="toast-icon" data-lucide="check-circle" class="text-green-500"></i>
+        <div>
+            <h4 id="toast-title" class="font-bold text-sm">Success</h4>
+            <p class="text-sm text-slate-500" id="toast-message">Logged in successfully.</p>
+        </div>
+    </div>
+
+    <!-- LOGIN GRID CONTAINER -->
+    <div id="login-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl px-4 mb-20 transition-all duration-500">
+
+        <!-- 1. Admin Login Form -->
+        <div class="login-card bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200 flex flex-col">
+            <div class="bg-slate-900 p-6 flex flex-col items-center text-white">
+                <div class="bg-slate-800 p-3 rounded-full mb-3">
+                    <i data-lucide="shield-alert" class="w-8 h-8 text-red-400"></i>
+                </div>
+                <h2 class="text-xl font-bold tracking-wide">Administrator</h2>
+                <p class="text-slate-400 text-xs uppercase tracking-wider mt-1">Restricted Access</p>
+            </div>
+            <div class="p-8 flex-1 flex flex-col justify-center">
+                <form onsubmit="handleLogin(event, 'Admin')" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Admin ID</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                            <input type="text" value="Admin" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Security Key</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                            <input type="password" value="1111" class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-2.5 rounded-lg hover:bg-slate-800 transition-colors flex justify-center items-center gap-2 group">
+                        Access Dashboard
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. Manager Login Form -->
+        <div class="login-card bg-white rounded-2xl shadow-lg overflow-hidden border border-purple-100 flex flex-col">
+            <div class="bg-purple-50 p-6 border-b border-purple-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-purple-900">Manager Portal</h2>
+                    <p class="text-purple-700 text-xs mt-1">Executive Access Only</p>
+                </div>
+                <div class="bg-white p-2 rounded-lg shadow-sm">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-purple-600"></i>
+                </div>
+            </div>
+            <div class="p-8 flex-1 flex flex-col justify-center bg-white/50">
+                <form onsubmit="handleLogin(event, 'Manager')" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Manager ID</label>
+                        <input type="text" value="Ali" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all font-mono" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Access Token</label>
+                        <input type="password" value="1111" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all font-mono" required>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-purple-600 text-white font-semibold py-2.5 rounded hover:bg-purple-700 transition-colors border-b-4 border-purple-800 active:border-b-0 active:translate-y-1">
+                            Secure Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. Employee Login Form -->
+        <div class="login-card bg-white rounded-2xl shadow-lg overflow-hidden border border-indigo-100 flex flex-col relative">
+            <div class="absolute top-0 w-full h-2 bg-indigo-500"></div>
+            <div class="p-8 flex-1 flex flex-col justify-center">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-full mb-4">
+                        <i data-lucide="id-card" class="w-8 h-8 text-indigo-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800">Employee Login</h2>
+                    <p class="text-slate-500 text-sm mt-1">Access your workspace and resources.</p>
+                </div>
+                
+                <form onsubmit="handleLogin(event, 'Employee')" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Employee ID</label>
+                        <input type="text" value="1" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                        <input type="password" value="1111" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" required>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+                        Sign In
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= ADMIN DASHBOARD ================= -->
+    <div id="admin-dashboard" class="hidden w-full max-w-[90rem] px-4 mb-20 animate-fade-in">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-8 border border-slate-200">
+            <div>
+               <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                   <i data-lucide="layout-dashboard" class="text-slate-600"></i> Admin Dashboard
+               </h2>
+               <p class="text-slate-500 text-sm mt-1">System Overview & User Management</p>
+            </div>
+            <div class="flex gap-3">
+                <!-- Admin Inbox Button -->
+                <button onclick="openInboxModal()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-2 rounded-lg shadow-sm transition-colors mt-4 md:mt-0">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="admin-msg-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <button onclick="handleLogout()" class="mt-4 md:mt-0 bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-md shadow-red-200 font-medium">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+    
+        <!-- Overview Tiles -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            <button onclick="openModal('manager-modal')" class="bg-white p-5 rounded-xl shadow-md border border-purple-100 hover:shadow-lg hover:border-purple-300 transition-all text-left group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
+                        <i data-lucide="briefcase" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                    <span id="tile-manager-count" class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 group-hover:text-purple-700 transition-colors">Managers</h3>
+                <p class="text-xs text-slate-400 mt-1">View & Manage Staff</p>
+            </button>
+            <button onclick="openModal('employee-modal')" class="bg-white p-5 rounded-xl shadow-md border border-indigo-100 hover:shadow-lg hover:border-indigo-300 transition-all text-left group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                        <i data-lucide="users" class="w-6 h-6 text-indigo-600"></i>
+                    </div>
+                    <span id="tile-employee-count" class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">Employees</h3>
+                <p class="text-xs text-slate-400 mt-1">View Team Members</p>
+            </button>
+            <button onclick="openModal('account-approval-modal')" class="bg-white p-5 rounded-xl shadow-md border border-emerald-100 hover:shadow-lg hover:border-emerald-300 transition-all text-left group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                        <i data-lucide="user-check" class="w-6 h-6 text-emerald-600"></i>
+                    </div>
+                    <span id="tile-acc-approval-count" class="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 group-hover:text-emerald-700 transition-colors">Account Req.</h3>
+                <p class="text-xs text-slate-400 mt-1">Approve New Customers</p>
+            </button>
+            <button onclick="openModal('trans-approval-modal')" class="bg-white p-5 rounded-xl shadow-md border border-pink-100 hover:shadow-lg hover:border-pink-300 transition-all text-left group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-pink-50 rounded-lg group-hover:bg-pink-100 transition-colors">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-pink-600"></i>
+                    </div>
+                    <span id="tile-trans-approval-count" class="bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 group-hover:text-pink-700 transition-colors">High Value Tx</h3>
+                <p class="text-xs text-slate-400 mt-1">Approve >100k</p>
+            </button>
+            <button onclick="openModal('customer-db-modal')" class="bg-white p-5 rounded-xl shadow-md border border-slate-200 hover:shadow-lg hover:border-slate-400 transition-all text-left group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors">
+                        <i data-lucide="database" class="w-6 h-6 text-slate-600"></i>
+                    </div>
+                    <span id="tile-customer-count" class="bg-slate-200 text-slate-700 text-xs px-2 py-1 rounded-full font-bold">0</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Customer DB</h3>
+                <p class="text-xs text-slate-400 mt-1">Full Ledger View</p>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Task Dispatcher Row (Multi-Select) -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-blue-100 flex flex-col relative z-20">
+                <div class="bg-gradient-to-r from-blue-50 to-white p-4 border-b border-blue-100 rounded-t-xl flex justify-between items-center">
+                    <h3 class="font-bold text-blue-900 flex items-center gap-2 text-lg">
+                        <i data-lucide="send" class="w-5 h-5 text-blue-600"></i> Task Dispatcher
+                    </h3>
+                    <div class="flex bg-slate-100 rounded-lg p-1 gap-1">
+                        <button type="button" onclick="setTaskTarget('Manager')" id="target-manager-btn" class="px-3 py-1 text-xs font-bold rounded-md bg-white text-blue-600 shadow-sm transition-all">Managers</button>
+                        <button type="button" onclick="setTaskTarget('Employee')" id="target-employee-btn" class="px-3 py-1 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">Employees</button>
+                    </div>
+                </div>
+                
+                <div class="p-5">
+                    <form onsubmit="handleCentralAssign(event)" class="space-y-4">
+                        <!-- Multi-Select Dropdown -->
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Assign To <span id="target-label">Managers</span></label>
+                            <button type="button" onclick="toggleUserDropdown('task-multi-select')" class="w-full pl-3 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none text-sm h-[38px] text-left flex justify-between items-center">
+                                <span id="task-select-label" class="truncate">Select Users...</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                            <div id="task-multi-select" class="hidden absolute top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 p-2 space-y-1 mt-1">
+                                <!-- Checkboxes filled by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Task Description -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Task Description</label>
+                            <input type="text" id="central-task-desc" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm h-[38px]" placeholder="Enter task details..." required>
+                        </div>
+
+                        <!-- Priority & Submit -->
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Priority</label>
+                                <div class="relative">
+                                     <select id="central-task-priority" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm appearance-none cursor-pointer h-[38px]">
+                                        <option value="High">High</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="Low">Low</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div class="w-16 flex items-end">
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-lg shadow-blue-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 h-[38px]">
+                                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Message Dispatcher (Communication Hub) -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-teal-100 flex flex-col relative z-20">
+                <div class="bg-gradient-to-r from-teal-50 to-white p-4 border-b border-teal-100 rounded-t-xl flex justify-between items-center">
+                    <h3 class="font-bold text-teal-900 flex items-center gap-2 text-lg">
+                        <i data-lucide="megaphone" class="w-5 h-5 text-teal-600"></i> Message Dispatcher
+                    </h3>
+                </div>
+                <div class="p-5">
+                    <form onsubmit="handleAdminBroadcast(event)" class="space-y-3">
+                         <!-- Recipient Select -->
+                         <div class="relative">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Recipients</label>
+                            <button type="button" onclick="toggleUserDropdown('msg-multi-select')" class="w-full pl-3 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-teal-500 focus:bg-white outline-none text-sm h-[38px] text-left flex justify-between items-center">
+                                <span id="msg-select-label" class="truncate">Select Recipients...</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                            <div id="msg-multi-select" class="hidden absolute top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 p-2 space-y-1 mt-1">
+                                <!-- Checkboxes filled by JS -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Subject</label>
+                            <input type="text" id="admin-msg-subject" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none text-sm" placeholder="Subject..." required>
+                        </div>
+                        <div>
+                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Message Body</label>
+                             <textarea id="admin-msg-body" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-teal-500 outline-none text-sm resize-none" placeholder="Type message here..." required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: User Management Panel (Add/Delete Users) -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-slate-200 flex flex-col relative z-20 mb-6">
+            <div class="bg-gradient-to-r from-slate-100 to-white p-4 border-b border-slate-200 rounded-t-xl flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg">
+                    <i data-lucide="user-cog" class="w-5 h-5 text-slate-600"></i> User Management
+                </h3>
+            </div>
+            
+            <div class="p-5">
+                <!-- Add User Form -->
+                <form onsubmit="handleAddUser(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Name</label>
+                        <input type="text" id="new-user-name" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none text-sm" placeholder="Full Name" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">User ID</label>
+                        <input type="text" id="new-user-id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none text-sm font-mono" placeholder="ID (e.g. EMP-05)" required>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
+                        <input type="email" id="new-user-email" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none text-sm" placeholder="email@corp.com" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Role</label>
+                        <select id="new-user-role" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none text-sm">
+                            <option value="Manager">Manager</option>
+                            <option value="Employee">Employee</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add User
+                        </button>
+                    </div>
+                </form>
+
+                <!-- User Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold">User ID</th>
+                                <th class="px-4 py-3 font-semibold">Name</th>
+                                <th class="px-4 py-3 font-semibold">Role</th>
+                                <th class="px-4 py-3 font-semibold">Email</th>
+                                <th class="px-4 py-3 text-right font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-list-body" class="divide-y divide-slate-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Tasks Log -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-slate-200 flex flex-col h-[400px] mb-6">
+             <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg">
+                    <i data-lucide="clipboard-list" class="w-5 h-5 text-slate-600"></i> Assigned Tasks Log
+                </h3>
+                <span class="text-xs font-medium text-slate-500 bg-white px-2 py-1 rounded border border-slate-200 shadow-sm">Admin Controls</span>
+             </div>
+             <div class="p-0 overflow-y-auto flex-1">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-3 font-semibold w-1/3">Task Description</th>
+                            <th class="px-6 py-3 font-semibold">Assigned To</th>
+                            <th class="px-6 py-3 font-semibold">Priority</th>
+                            <th class="px-6 py-3 font-semibold">Status (Admin Edit)</th>
+                            <th class="px-6 py-3 text-right font-semibold">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-tasks-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+                <div id="no-all-tasks" class="hidden flex flex-col items-center justify-center py-12 text-slate-400">
+                    <i data-lucide="inbox" class="w-10 h-10 mb-2 opacity-20"></i>
+                    <p>No tasks assigned yet.</p>
+                </div>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- ================= MANAGER DASHBOARD ================= -->
+    <div id="manager-dashboard" class="hidden w-full max-w-6xl px-4 mb-20 animate-fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-8 border border-purple-100">
+            <div>
+               <h2 class="text-2xl font-bold text-purple-900 flex items-center gap-2">
+                   <i data-lucide="briefcase" class="text-purple-600"></i> Manager Dashboard
+               </h2>
+               <p class="text-slate-500 text-sm mt-1">Welcome back, <span id="mgr-dash-name" class="font-bold text-purple-700">Manager</span></p>
+            </div>
+            <div class="flex gap-3">
+                 <!-- Contact Admin Button -->
+                 <button onclick="openContactAdminModal()" class="bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2" title="Contact Admin">
+                    <i data-lucide="shield" class="w-5 h-5"></i> <span class="hidden sm:inline text-xs font-bold">Contact Admin</span>
+                </button>
+                 <!-- Global Message Button -->
+                 <button onclick="openComposeModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2" title="Compose Message">
+                    <i data-lucide="mail-plus" class="w-5 h-5"></i> <span class="hidden sm:inline text-xs font-bold">New Message</span>
+                </button>
+                <button onclick="openInboxModal()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-2 rounded-lg shadow-sm transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="mgr-msg-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-md text-sm font-medium">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Tasks Column -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-purple-100 min-h-[400px] flex flex-col">
+                <div class="bg-purple-50 p-5 border-b border-purple-100">
+                    <h3 class="font-bold text-purple-900">My Assigned Tasks</h3>
+                </div>
+                <div class="p-6 flex-1">
+                    <ul id="mgr-task-list" class="space-y-3"></ul>
+                    <div id="mgr-no-tasks" class="hidden flex flex-col items-center justify-center h-full text-slate-400 py-10">
+                        <i data-lucide="check-square" class="w-12 h-12 mb-2 opacity-20"></i>
+                        <p>No pending tasks assigned.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Approvals Column -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-emerald-100 min-h-[400px] flex flex-col">
+                <div class="bg-emerald-50 p-5 border-b border-emerald-100 flex justify-between items-center">
+                    <h3 class="font-bold text-emerald-900 flex items-center gap-2">
+                        <i data-lucide="user-check" class="w-5 h-5 text-emerald-600"></i> Pending Accounts
+                    </h3>
+                    <span id="mgr-approval-count" class="bg-white text-emerald-700 text-xs px-2 py-1 rounded font-bold border border-emerald-200">0</span>
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto">
+                    <ul id="mgr-approval-list" class="space-y-3"></ul>
+                    <div id="mgr-no-approvals" class="hidden flex flex-col items-center justify-center h-full text-slate-400 py-10">
+                        <i data-lucide="folder-check" class="w-12 h-12 mb-2 opacity-20"></i>
+                        <p>No accounts waiting.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Task Dispatcher (Manager View) -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-purple-100 flex flex-col relative z-20 mb-6">
+            <div class="bg-gradient-to-r from-purple-50 to-white p-4 border-b border-purple-100 rounded-t-xl flex justify-between items-center">
+                <h3 class="font-bold text-purple-900 flex items-center gap-2 text-lg">
+                    <i data-lucide="send" class="w-5 h-5 text-purple-600"></i> Assign Task to Employees
+                </h3>
+            </div>
+            
+            <div class="p-5">
+                <form onsubmit="handleManagerAssign(event)" class="space-y-4">
+                    <!-- Multi-Select Dropdown -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Select Employees</label>
+                        <button type="button" onclick="toggleUserDropdown('manager-task-multi-select')" class="w-full pl-3 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none text-sm h-[38px] text-left flex justify-between items-center">
+                            <span id="manager-task-select-label" class="truncate">Select Employees...</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                        <div id="manager-task-multi-select" class="hidden absolute top-full left-0 w-full bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto z-50 p-2 space-y-1 mt-1">
+                            <!-- Checkboxes filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Task Description -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Task Description</label>
+                        <input type="text" id="manager-task-desc" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none text-sm h-[38px]" placeholder="Enter task details..." required>
+                    </div>
+
+                    <!-- Priority & Submit -->
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Priority</label>
+                            <div class="relative">
+                                    <select id="manager-task-priority" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none text-sm appearance-none cursor-pointer h-[38px]">
+                                    <option value="High">High</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <div class="w-16 flex items-end">
+                            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg shadow-lg shadow-purple-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 h-[38px]">
+                                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- NEW: High Value Transactions (Manager View) -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-pink-100 flex flex-col mb-6">
+            <div class="bg-pink-50 p-5 border-b border-pink-100 flex justify-between items-center">
+                <h3 class="font-bold text-pink-900 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-pink-600"></i> High Value Transactions (> $50,000)
+                </h3>
+            </div>
+            <div class="p-0 overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 font-semibold">Transaction ID</th>
+                            <th class="px-6 py-3 font-semibold">Amount</th>
+                            <th class="px-6 py-3 font-semibold">Customer</th>
+                            <th class="px-6 py-3 font-semibold">Date</th>
+                            <th class="px-6 py-3 text-right font-semibold">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mgr-tx-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+                <div id="mgr-no-tx" class="hidden flex flex-col items-center justify-center py-10 text-slate-400">
+                    <i data-lucide="credit-card" class="w-10 h-10 mb-2 opacity-20"></i>
+                    <p>No high value transactions pending.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Customer Directory (Manager View) -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-slate-200 flex flex-col mb-6">
+            <div class="bg-slate-50 p-5 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="database" class="w-5 h-5 text-slate-600"></i> Customer Directory
+                </h3>
+            </div>
+            <div id="mgr-customer-db" class="p-0 overflow-x-auto">
+                <!-- Populated by JS -->
+                <div class="p-10 text-center text-slate-400"><i data-lucide="database" class="w-12 h-12 mx-auto mb-3 opacity-20"></i><p>Database is empty.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= EMPLOYEE DASHBOARD ================= -->
+    <div id="employee-dashboard" class="hidden w-full max-w-7xl px-4 mb-20 animate-fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-lg mb-8 border border-indigo-100">
+            <div>
+               <h2 class="text-2xl font-bold text-indigo-900 flex items-center gap-2">
+                   <i data-lucide="id-card" class="text-indigo-600"></i> Employee Workspace
+               </h2>
+               <p class="text-slate-500 text-sm mt-1">Hello, <span id="emp-dash-name" class="font-bold text-indigo-700">Employee</span></p>
+            </div>
+            <div class="flex gap-3 mt-4 md:mt-0">
+                 <!-- Contact Admin Button -->
+                 <button onclick="openContactAdminModal()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2" title="Contact Admin">
+                    <i data-lucide="shield" class="w-5 h-5"></i> <span class="hidden sm:inline text-xs font-bold">Contact Admin</span>
+                </button>
+                 <!-- Global Message Button -->
+                 <button onclick="openComposeModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2" title="Compose Message">
+                    <i data-lucide="mail-plus" class="w-5 h-5"></i> <span class="hidden sm:inline text-xs font-bold">New Message</span>
+                </button>
+                <button onclick="openInboxModal()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-2 rounded-lg shadow-sm transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="emp-msg-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </button>
+                <button onclick="handleLogout()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-md text-sm font-medium">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Employee Task List -->
+            <div class="md:col-span-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-indigo-100 min-h-[300px] flex flex-col">
+                <div class="bg-indigo-50 p-5 border-b border-indigo-100">
+                    <h3 class="font-bold text-indigo-900">My To-Do List</h3>
+                </div>
+                <div class="p-6 flex-1 overflow-y-auto">
+                    <ul id="emp-task-list" class="space-y-3"></ul>
+                    <div id="emp-no-tasks" class="hidden flex flex-col items-center justify-center h-full text-slate-400 py-10">
+                        <i data-lucide="check-square" class="w-12 h-12 mb-2 opacity-20"></i>
+                        <p>You're all caught up!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Onboarding Card -->
+            <div class="md:col-span-1 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-emerald-100 flex flex-col">
+                <div class="bg-emerald-50 p-5 border-b border-emerald-100">
+                     <h3 class="font-bold text-emerald-900 flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-5 h-5 text-emerald-600"></i> New Customer
+                    </h3>
+                </div>
+                <div class="p-5">
+                    <form onsubmit="handleCustomerApplication(event)" class="space-y-3">
+                         <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name (Unique)</label>
+                            <input type="text" id="cust-app-name" class="w-full px-3 py-2 border border-slate-200 rounded text-sm" placeholder="e.g. John Doe" required>
+                         </div>
+                         <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">CNIC / ID (13 Digits)</label>
+                            <input type="text" id="cust-app-cnic" class="w-full px-3 py-2 border border-slate-200 rounded text-sm font-mono" placeholder="1234567890123" maxlength="13" pattern="\d{13}" title="Exactly 13 digits required" required>
+                         </div>
+                         <div class="grid grid-cols-2 gap-2">
+                             <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type</label>
+                                <select id="cust-app-type" class="w-full px-2 py-2 border border-slate-200 rounded text-sm">
+                                    <option value="Savings">Savings</option>
+                                    <option value="Current">Current</option>
+                                    <option value="Business">Business</option>
+                                </select>
+                             </div>
+                             <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Min Deposit</label>
+                                <input type="number" id="cust-app-deposit" class="w-full px-2 py-2 border border-slate-200 rounded text-sm" placeholder="Min 20000" min="20000" required>
+                             </div>
+                         </div>
+                         <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded shadow-sm hover:bg-emerald-700 transition-colors mt-2 text-sm">
+                             Submit for Approval
+                         </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teller Operations Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <!-- Teller Operations / Transactions -->
+             <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-pink-100 flex flex-col">
+                <div class="bg-pink-50 p-5 border-b border-pink-100">
+                     <h3 class="font-bold text-pink-900 flex items-center gap-2">
+                        <i data-lucide="banknote" class="w-5 h-5 text-pink-600"></i> Teller Operations
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <form onsubmit="handleTransaction(event)" class="space-y-4">
+                        <div>
+                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Customer Account Name</label>
+                             <div class="relative">
+                                 <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
+                                 <input type="text" id="tx-cust-name" oninput="searchCustomerDetails(this.value)" class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded text-sm" placeholder="Search by exact name..." required>
+                             </div>
+                        </div>
+
+                        <!-- NEW: Customer Profile Card -->
+                        <div id="cust-profile-card" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm">
+                            <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                <i data-lucide="user" class="w-4 h-4"></i> <span id="profile-name">Name</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div><span class="text-slate-500">Type:</span> <span id="profile-type" class="font-medium"></span></div>
+                                <div><span class="text-slate-500">Balance:</span> <span id="profile-balance" class="font-bold text-emerald-600"></span></div>
+                                <div><span class="text-slate-500">Last Dep:</span> <br><span id="profile-last-dep"></span></div>
+                                <div><span class="text-slate-500">Last W/D:</span> <br><span id="profile-last-wd"></span></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Operation</label>
+                                <select id="tx-type" class="w-full px-3 py-2 border border-slate-200 rounded text-sm">
+                                    <option value="Deposit">Deposit</option>
+                                    <option value="Withdraw">Withdraw (Cheque)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Amount</label>
+                                <input type="number" id="tx-amount" class="w-full px-3 py-2 border border-slate-200 rounded text-sm" placeholder="0.00" min="1" required>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded text-xs text-yellow-700 flex items-start gap-2">
+                            <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                            <p>Deposits > 50,000 require manager approval. Withdrawals require sufficient funds.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-pink-600 text-white font-bold py-2.5 rounded shadow-sm hover:bg-pink-700 transition-colors">
+                            Process Transaction
+                        </button>
+                    </form>
+                </div>
+             </div>
+
+             <!-- Recent Activity / Logs -->
+             <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl overflow-hidden border border-slate-200 flex flex-col">
+                <div class="bg-slate-50 p-5 border-b border-slate-200">
+                     <h3 class="font-bold text-slate-800">Session Activity</h3>
+                </div>
+                <div id="emp-activity-log" class="p-4 overflow-y-auto max-h-[300px] text-sm text-slate-600 space-y-2">
+                    <p class="text-slate-400 italic text-center py-4">No recent activity.</p>
+                </div>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- ================= MODALS ================= -->
+    <div id="modal-container" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-title" class="text-lg font-bold text-slate-800">Modal Title</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="modal-content" class="p-6 overflow-y-auto">
+                <!-- Dynamic Content Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Compose Modal -->
+    <div id="compose-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md animate-scale-in">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50 rounded-t-xl">
+                <h3 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                    <i data-lucide="mail-plus" class="w-5 h-5"></i> New Message
+                </h3>
+                <button onclick="closeComposeModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="handleSendMessage(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">To</label>
+                        <select id="compose-to" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Subject</label>
+                        <input type="text" id="compose-subject" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm" required>
+                    </div>
+                    <div>
+                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Message</label>
+                         <textarea id="compose-body" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm resize-none" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded transition-colors">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Admin Modal -->
+    <div id="contact-admin-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md animate-scale-in">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-purple-50 rounded-t-xl">
+                <h3 class="text-lg font-bold text-purple-900 flex items-center gap-2">
+                    <i data-lucide="shield" class="w-5 h-5"></i> Contact Admin
+                </h3>
+                <button onclick="closeContactModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="handleContactAdmin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Subject</label>
+                        <input type="text" id="contact-subject" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm" required>
+                    </div>
+                    <div>
+                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Message</label>
+                         <textarea id="contact-body" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm resize-none" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded transition-colors">Send to Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reply Modal -->
+    <div id="reply-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center modal-backdrop p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md animate-scale-in">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-50 rounded-t-xl">
+                <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                    <i data-lucide="reply" class="w-5 h-5"></i> Send Reply
+                </h3>
+                <button onclick="closeReplyModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form onsubmit="submitReply(event)" class="space-y-4">
+                    <input type="hidden" id="reply-to-id">
+                    <input type="hidden" id="reply-original-subject">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">To</label>
+                        <input type="text" id="reply-to-name" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded text-sm text-slate-500" readonly>
+                    </div>
+                    <div>
+                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Message</label>
+                         <textarea id="reply-body" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none" required></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition-colors">Send Reply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STORE ---
+        const users = [
+            { id: 'Ali', name: 'Ali', role: 'Manager', email: 'ali@corp.com' },
+            { id: 'Hammad', name: 'Hammad', role: 'Manager', email: 'hammad@corp.com' },
+            { id: '1', name: 'Employee 1', role: 'Employee', email: 'emp1@corp.com' },
+            { id: '2', name: 'Employee 2', role: 'Employee', email: 'emp2@corp.com' },
+            { id: '3', name: 'Employee 3', role: 'Employee', email: 'emp3@corp.com' },
+            { id: '4', name: 'Employee 4', role: 'Employee', email: 'emp4@corp.com' }
+        ];
+
+        // CLEARED DEFAULT DATA
+        let tasks = [];
+        let accountApprovals = [];
+        let transactions = [];
+        let messages = [];
+        let customers = []; // Active customers
+
+        let currentUser = null;
+        let taskTargetRole = 'Manager'; // 'Manager' or 'Employee'
+
+        // --- INIT ---
+        lucide.createIcons();
+        updateDashboardCounts();
+        
+        // Hide dropdowns on click outside
+        document.addEventListener('click', function(e) {
+            const dropdowns = ['task-multi-select', 'msg-multi-select', 'manager-task-multi-select'];
+            dropdowns.forEach(id => {
+                const el = document.getElementById(id);
+                // Check if click was inside the dropdown or on the button that toggles it
+                const btn = e.target.closest(`button[onclick="toggleUserDropdown('${id}')"]`);
+                if (!el.contains(e.target) && !btn) {
+                    el.classList.add('hidden');
+                }
+            });
+        });
+
+        // --- LOGIN LOGIC ---
+        function handleLogin(e, role) {
+            e.preventDefault();
+            const inputs = e.target.querySelectorAll('input');
+            const id = inputs[0].value;
+            const password = inputs[1].value;
+            
+            // Mock Auth
+            if (role === 'Admin') {
+                // Strict check for Admin credentials
+                if (id === 'Admin' && password === '1111') {
+                    currentUser = { id: 'ADMIN', name: 'Administrator', role: 'Admin' };
+                    showSection('admin-dashboard');
+                    renderAdminViews();
+                } else {
+                    showToast('Error', 'Invalid Admin credentials.', 'red');
+                    return;
+                }
+            } else {
+                // Check user existence AND password (1111)
+                const user = users.find(u => u.id === id && u.role === role);
+                
+                if (user && password === '1111') {
+                    currentUser = user;
+                    if(role === 'Manager') {
+                        document.getElementById('mgr-dash-name').innerText = user.name;
+                        showSection('manager-dashboard');
+                        renderManagerViews();
+                    } else {
+                        document.getElementById('emp-dash-name').innerText = user.name;
+                        showSection('employee-dashboard');
+                        renderEmployeeViews();
+                    }
+                } else {
+                    showToast('Error', 'Invalid credentials or password.', 'red');
+                    return;
+                }
+            }
+            
+            showToast('Success', `Welcome back, ${currentUser.name}`);
+            updateMessageBadges();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            showSection('login-header');
+            document.getElementById('login-grid').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('manager-dashboard').classList.add('hidden');
+            document.getElementById('employee-dashboard').classList.add('hidden');
+            showToast('Logged Out', 'You have been signed out.');
+        }
+
+        // --- NAVIGATION HELPERS ---
+        function showSection(id) {
+            document.getElementById('login-header').classList.add('hidden');
+            document.getElementById('login-grid').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('manager-dashboard').classList.add('hidden');
+            document.getElementById('employee-dashboard').classList.add('hidden');
+            
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('hidden');
+        }
+
+        function showToast(title, msg, color = 'green') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-message').innerText = msg;
+            
+            if(color === 'red') {
+                toast.classList.replace('border-green-500', 'border-red-500');
+                icon.classList.add('text-red-500');
+                icon.classList.remove('text-green-500');
+                icon.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                toast.classList.replace('border-red-500', 'border-green-500');
+                icon.classList.remove('text-red-500');
+                icon.classList.add('text-green-500');
+                icon.setAttribute('data-lucide', 'check-circle');
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('-translate-y-full', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('-translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- MULTI-SELECT & ADMIN LOGIC ---
+        function setTaskTarget(role) {
+            taskTargetRole = role;
+            document.getElementById('target-label').innerText = role + 's';
+            // Button Styles
+            const activeClass = "px-3 py-1 text-xs font-bold rounded-md bg-white text-blue-600 shadow-sm transition-all";
+            const inactiveClass = "px-3 py-1 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all";
+            
+            document.getElementById('target-manager-btn').className = role === 'Manager' ? activeClass : inactiveClass;
+            document.getElementById('target-employee-btn').className = role === 'Employee' ? activeClass : inactiveClass;
+            
+            // Refresh dropdowns logic (will happen when clicked)
+            document.getElementById('task-select-label').innerText = 'Select Users...';
+            document.getElementById('msg-select-label').innerText = 'Select Recipients...';
+        }
+
+        function toggleUserDropdown(elementId) {
+            const dropdown = document.getElementById(elementId);
+            
+            // Populate
+            dropdown.innerHTML = '';
+            
+            let targetUsers = users;
+            let cbClass = 'msg-cb';
+
+            // Filter users based on which dropdown it is
+            if (elementId === 'task-multi-select') {
+                targetUsers = users.filter(u => u.role === taskTargetRole);
+                cbClass = 'task-cb';
+            } else if (elementId === 'manager-task-multi-select') {
+                targetUsers = users.filter(u => u.role === 'Employee'); // Managers only assign to Employees
+                cbClass = 'mgr-task-cb';
+            }
+
+            if(targetUsers.length === 0) {
+                 dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">No users found.</div>';
+            } else {
+                targetUsers.forEach(u => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center gap-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer";
+                    div.innerHTML = `
+                        <input type="checkbox" value="${u.id}" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 ${cbClass}">
+                        <span class="text-sm text-slate-700">${u.name} <span class="text-xs text-slate-400">(${u.role})</span></span>
+                    `;
+                    // Prevent closing when clicking checkbox
+                    div.addEventListener('click', (e) => {
+                        if(e.target.tagName !== 'INPUT') {
+                            const cb = div.querySelector('input');
+                            cb.checked = !cb.checked;
+                        }
+                        updateSelectLabel(elementId);
+                    });
+                    dropdown.appendChild(div);
+                });
+            }
+            
+            dropdown.classList.toggle('hidden');
+        }
+
+        function updateSelectLabel(elementId) {
+            let cbClass = 'msg-cb';
+            let labelId = 'msg-select-label';
+            
+            if(elementId === 'task-multi-select') {
+                cbClass = 'task-cb';
+                labelId = 'task-select-label';
+            } else if (elementId === 'manager-task-multi-select') {
+                cbClass = 'mgr-task-cb';
+                labelId = 'manager-task-select-label';
+            }
+
+            const checkboxes = document.querySelectorAll(`.${cbClass}:checked`);
+            const count = checkboxes.length;
+            
+            let defaultText = 'Select Recipients...';
+            if (elementId === 'task-multi-select') defaultText = 'Select Users...';
+            if (elementId === 'manager-task-multi-select') defaultText = 'Select Employees...';
+
+            document.getElementById(labelId).innerText = count > 0 ? `${count} Selected` : defaultText;
+        }
+
+        function handleCentralAssign(e) {
+            e.preventDefault();
+            const checkedBoxes = document.querySelectorAll('.task-cb:checked');
+            const desc = document.getElementById('central-task-desc').value;
+            const priority = document.getElementById('central-task-priority').value;
+
+            if(checkedBoxes.length === 0) return showToast('Error', 'Select at least one user.', 'red');
+
+            checkedBoxes.forEach(cb => {
+                tasks.push({
+                    id: Date.now() + Math.random(),
+                    desc,
+                    assignedTo: cb.value,
+                    priority,
+                    status: 'Pending'
+                });
+            });
+
+            document.getElementById('central-task-desc').value = '';
+            document.getElementById('task-multi-select').classList.add('hidden');
+            document.getElementById('task-select-label').innerText = 'Select Users...';
+            // Uncheck all
+            document.querySelectorAll('.task-cb').forEach(cb => cb.checked = false);
+
+            showToast('Task Assigned', `Task sent to ${checkedBoxes.length} user(s).`);
+            renderAdminViews(); // Refresh table
+        }
+
+        function handleManagerAssign(e) {
+            e.preventDefault();
+            const checkedBoxes = document.querySelectorAll('.mgr-task-cb:checked');
+            const desc = document.getElementById('manager-task-desc').value;
+            const priority = document.getElementById('manager-task-priority').value;
+
+            if(checkedBoxes.length === 0) return showToast('Error', 'Select at least one employee.', 'red');
+
+            checkedBoxes.forEach(cb => {
+                tasks.push({
+                    id: Date.now() + Math.random(),
+                    desc,
+                    assignedTo: cb.value,
+                    priority,
+                    status: 'Pending'
+                });
+            });
+
+            document.getElementById('manager-task-desc').value = '';
+            document.getElementById('manager-task-multi-select').classList.add('hidden');
+            document.getElementById('manager-task-select-label').innerText = 'Select Employees...';
+            document.querySelectorAll('.mgr-task-cb').forEach(cb => cb.checked = false);
+
+            showToast('Task Assigned', `Task sent to ${checkedBoxes.length} employee(s).`);
+            renderManagerViews(); // Refresh view
+        }
+
+        function handleAdminBroadcast(e) {
+            e.preventDefault();
+            const checkedBoxes = document.querySelectorAll('.msg-cb:checked');
+            const subject = document.getElementById('admin-msg-subject').value;
+            const body = document.getElementById('admin-msg-body').value;
+
+            if(checkedBoxes.length === 0) return showToast('Error', 'Select recipients.', 'red');
+
+            checkedBoxes.forEach(cb => {
+                 messages.push({
+                    id: Date.now() + Math.random(),
+                    to: cb.value,
+                    from: 'Admin',
+                    subject: subject,
+                    body: body,
+                    read: false
+                });
+            });
+
+            e.target.reset();
+            document.getElementById('msg-multi-select').classList.add('hidden');
+            document.getElementById('msg-select-label').innerText = 'Select Recipients...';
+            showToast('Sent', 'Message broadcasted.');
+        }
+
+        function completeTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if(task) {
+                task.status = 'Completed';
+                renderManagerViews();
+                renderEmployeeViews();
+                renderAdminViews(); // If admin is watching
+                showToast('Task Completed', 'Good job!');
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderAdminViews();
+            showToast('Deleted', 'Task removed.');
+        }
+
+        // --- ADMIN VIEWS ---
+        function renderAdminViews() {
+            setTaskTarget(taskTargetRole);
+            updateDashboardCounts();
+            renderUserManagementTable();
+            
+            // Render All Tasks Log
+            const tbody = document.getElementById('all-tasks-body');
+            tbody.innerHTML = '';
+            
+            if(tasks.length === 0) {
+                document.getElementById('no-all-tasks').classList.remove('hidden');
+            } else {
+                document.getElementById('no-all-tasks').classList.add('hidden');
+                tasks.forEach(task => {
+                    const user = users.find(u => u.id === task.assignedTo);
+                    const row = `
+                        <tr class="bg-white hover:bg-slate-50 transition-colors group">
+                            <td class="px-6 py-4 font-medium text-slate-800">${task.desc}</td>
+                            <td class="px-6 py-4 text-slate-500">${user ? user.name : task.assignedTo}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded-full text-xs font-bold ${task.priority === 'High' ? 'bg-red-100 text-red-600' : (task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600')}">${task.priority}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="flex items-center gap-1 text-xs font-bold ${task.status === 'Completed' ? 'text-green-600' : 'text-slate-400'}">
+                                    <i data-lucide="${task.status === 'Completed' ? 'check-circle-2' : 'clock'}" class="w-3 h-3"></i> ${task.status}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="deleteTask(${task.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function updateDashboardCounts() {
+            document.getElementById('tile-manager-count').innerText = users.filter(u => u.role === 'Manager').length;
+            document.getElementById('tile-employee-count').innerText = users.filter(u => u.role === 'Employee').length;
+            document.getElementById('tile-acc-approval-count').innerText = accountApprovals.length;
+            document.getElementById('tile-trans-approval-count').innerText = transactions.length;
+            document.getElementById('tile-customer-count').innerText = customers.length;
+        }
+
+        // --- USER MANAGEMENT LOGIC ---
+        function renderUserManagementTable() {
+            const tbody = document.getElementById('admin-user-list-body');
+            tbody.innerHTML = '';
+            
+            users.forEach(u => {
+                const row = `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-slate-500">${u.id}</td>
+                        <td class="px-4 py-3 font-bold text-slate-700">${u.name}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${u.role === 'Manager' ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'}">${u.role}</span>
+                        </td>
+                        <td class="px-4 py-3 text-slate-500">${u.email}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="handleDeleteUser('${u.id}')" class="text-slate-400 hover:text-red-500 transition-colors" title="Delete User">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            lucide.createIcons();
+        }
+
+        function handleAddUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-user-name').value;
+            const id = document.getElementById('new-user-id').value;
+            const email = document.getElementById('new-user-email').value;
+            const role = document.getElementById('new-user-role').value;
+
+            if (users.some(u => u.id === id)) return showToast('Error', 'User ID already exists.', 'red');
+
+            users.push({ id, name, role, email });
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-id').value = '';
+            document.getElementById('new-user-email').value = '';
+            
+            renderUserManagementTable();
+            updateDashboardCounts();
+            showToast('Success', `${role} added successfully.`);
+        }
+
+        function handleDeleteUser(id) {
+            if(confirm('Are you sure you want to delete this user?')) {
+                const index = users.findIndex(u => u.id === id);
+                if (index > -1) {
+                    users.splice(index, 1);
+                    renderUserManagementTable();
+                    updateDashboardCounts();
+                    showToast('Deleted', 'User removed from system.');
+                }
+            }
+        }
+
+        // --- CUSTOMER & TRANSACTION LOGIC ---
+        function handleCustomerApplication(e) {
+            e.preventDefault();
+            const name = document.getElementById('cust-app-name').value;
+            const cnic = document.getElementById('cust-app-cnic').value;
+            const type = document.getElementById('cust-app-type').value;
+            const deposit = parseFloat(document.getElementById('cust-app-deposit').value);
+
+            if(cnic.length !== 13 || isNaN(cnic)) return showToast('Error', 'CNIC must be exactly 13 digits.', 'red');
+            if(deposit < 20000) return showToast('Error', 'Minimum deposit is 20,000.', 'red');
+            if(customers.some(c => c.name === name) || accountApprovals.some(a => a.name === name)) {
+                return showToast('Error', 'Customer name must be unique.', 'red');
+            }
+
+            accountApprovals.push({
+                id: Date.now(),
+                name,
+                cnic,
+                type,
+                initialDeposit: deposit,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Pending'
+            });
+
+            e.target.reset();
+            showToast('Success', 'Application submitted for approval.');
+            logActivity(`New customer app: ${name}`);
+        }
+
+        function searchCustomerDetails(query) {
+            const card = document.getElementById('cust-profile-card');
+            if(!query) {
+                card.classList.add('hidden');
+                return;
+            }
+            const cust = customers.find(c => c.name.toLowerCase() === query.toLowerCase());
+            if(cust) {
+                card.classList.remove('hidden');
+                document.getElementById('profile-name').innerText = cust.name;
+                document.getElementById('profile-type').innerText = cust.type;
+                document.getElementById('profile-balance').innerText = '$' + cust.balance.toLocaleString();
+                document.getElementById('profile-last-dep').innerText = cust.lastDeposit ? `$${cust.lastDeposit.amount} (${cust.lastDeposit.date})` : 'None';
+                document.getElementById('profile-last-wd').innerText = cust.lastWithdraw ? `$${cust.lastWithdraw.amount} (${cust.lastWithdraw.date})` : 'None';
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+
+        function handleTransaction(e) {
+            e.preventDefault();
+            const name = document.getElementById('tx-cust-name').value;
+            const type = document.getElementById('tx-type').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+
+            const cust = customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+            if(!cust) return showToast('Error', 'Customer not found or not active.', 'red');
+
+            if(type === 'Deposit') {
+                if(amount > 50000) {
+                    transactions.push({
+                        id: 'TX-' + Math.floor(Math.random() * 10000),
+                        amount,
+                        requester: name, 
+                        type: 'Deposit',
+                        date: new Date().toISOString().split('T')[0],
+                        status: 'Pending'
+                    });
+                    showToast('Pending', 'Deposit > 50k requires approval.', 'yellow');
+                    logActivity(`Pending Deposit: ${amount} for ${name}`);
+                } else {
+                    cust.balance += amount;
+                    cust.lastDeposit = { amount, date: new Date().toLocaleDateString() };
+                    showToast('Success', `Deposit successful. New Balance: ${cust.balance}`);
+                    logActivity(`Deposited ${amount} to ${name}`);
+                    searchCustomerDetails(name); // Refresh card
+                }
+            } else {
+                if(cust.balance >= amount) {
+                    cust.balance -= amount;
+                    cust.lastWithdraw = { amount, date: new Date().toLocaleDateString() };
+                    showToast('Success', `Withdrawal successful. New Balance: ${cust.balance}`);
+                    logActivity(`Withdrew ${amount} from ${name}`);
+                    searchCustomerDetails(name); // Refresh card
+                } else {
+                    showToast('Error', 'Insufficient funds.', 'red');
+                }
+            }
+            e.target.reset();
+        }
+
+        function logActivity(msg) {
+            const log = document.getElementById('emp-activity-log');
+            if(log.children[0]?.tagName === 'P') log.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.className = "border-b border-slate-100 py-2";
+            entry.innerHTML = `<span class="font-mono text-xs text-slate-400">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+            log.prepend(entry);
+        }
+
+        // --- MESSAGING LOGIC ---
+        function openComposeModal() {
+            document.getElementById('compose-modal').classList.remove('hidden');
+            const select = document.getElementById('compose-to');
+            select.innerHTML = '<option value="ADMIN">Admin</option>';
+            
+            // Add all users except current
+            users.forEach(u => {
+                if(u.id !== currentUser.id) {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.innerText = `${u.name} (${u.role})`;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function closeComposeModal() {
+            document.getElementById('compose-modal').classList.add('hidden');
+        }
+
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const toId = document.getElementById('compose-to').value;
+            const subject = document.getElementById('compose-subject').value;
+            const body = document.getElementById('compose-body').value;
+
+            messages.push({
+                id: Date.now(),
+                to: toId,
+                from: currentUser.name + ` (${currentUser.role})`,
+                fromId: currentUser.id, // track for reply
+                subject,
+                body,
+                read: false
+            });
+
+            closeComposeModal();
+            document.getElementById('compose-subject').value = '';
+            document.getElementById('compose-body').value = '';
+            showToast('Sent', 'Message sent successfully.');
+        }
+
+        // --- CONTACT ADMIN LOGIC ---
+        function openContactAdminModal() {
+            document.getElementById('contact-admin-modal').classList.remove('hidden');
+        }
+        function closeContactModal() {
+            document.getElementById('contact-admin-modal').classList.add('hidden');
+        }
+
+        function handleContactAdmin(e) {
+            e.preventDefault();
+            const subject = document.getElementById('contact-subject').value;
+            const body = document.getElementById('contact-body').value;
+
+            messages.push({
+                id: Date.now(),
+                to: 'ADMIN',
+                from: currentUser.name + ` (${currentUser.role})`,
+                fromId: currentUser.id, 
+                subject,
+                body,
+                read: false
+            });
+
+            closeContactModal();
+            document.getElementById('contact-subject').value = '';
+            document.getElementById('contact-body').value = '';
+            showToast('Sent', 'Message sent to Admin.');
+        }
+
+        // --- REPLY SYSTEM ---
+        function openReplyModal(toId, toName, originalSubject) {
+            document.getElementById('reply-modal').classList.remove('hidden');
+            document.getElementById('reply-to-id').value = toId;
+            document.getElementById('reply-to-name').value = toName;
+            document.getElementById('reply-original-subject').value = originalSubject;
+        }
+
+        function closeReplyModal() {
+            document.getElementById('reply-modal').classList.add('hidden');
+            document.getElementById('reply-body').value = '';
+        }
+
+        function submitReply(e) {
+            e.preventDefault();
+            const toId = document.getElementById('reply-to-id').value;
+            const body = document.getElementById('reply-body').value;
+            const originalSubject = document.getElementById('reply-original-subject').value;
+            const subject = originalSubject.startsWith('RE:') ? originalSubject : `RE: ${originalSubject}`;
+
+            messages.push({
+                id: Date.now(),
+                to: toId,
+                from: currentUser.role === 'Admin' ? 'Admin' : currentUser.name,
+                fromId: currentUser.id,
+                subject: subject,
+                body: body,
+                read: false
+            });
+            closeReplyModal();
+            showToast('Sent', 'Reply sent successfully.');
+        }
+
+        // --- MANAGER VIEWS ---
+        function renderManagerViews() {
+            // Filter Tasks
+            const myTasks = tasks.filter(t => t.assignedTo === currentUser.id && t.status !== 'Completed');
+            const list = document.getElementById('mgr-task-list');
+            list.innerHTML = '';
+
+            if(myTasks.length === 0) {
+                document.getElementById('mgr-no-tasks').classList.remove('hidden');
+            } else {
+                document.getElementById('mgr-no-tasks').classList.add('hidden');
+                myTasks.forEach(t => {
+                    list.innerHTML += `
+                        <li class="bg-white border border-purple-100 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex justify-between items-center">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold ${t.priority === 'High' ? 'text-red-500' : 'text-yellow-500'} uppercase">${t.priority} Priority</span>
+                                </div>
+                                <p class="text-slate-700 font-medium">${t.desc}</p>
+                            </div>
+                            <button onclick="completeTask(${t.id})" class="bg-purple-100 text-purple-600 hover:bg-purple-200 p-2 rounded-full transition-colors" title="Mark Complete">
+                                <i data-lucide="check" class="w-4 h-4"></i>
+                            </button>
+                        </li>
+                    `;
+                });
+            }
+
+            // Approvals List (Includes Customer Apps)
+            const approvalList = document.getElementById('mgr-approval-list');
+            approvalList.innerHTML = '';
+            document.getElementById('mgr-approval-count').innerText = accountApprovals.length;
+
+            if(accountApprovals.length === 0) {
+                document.getElementById('mgr-no-approvals').classList.remove('hidden');
+            } else {
+                document.getElementById('mgr-no-approvals').classList.add('hidden');
+                accountApprovals.forEach(a => {
+                    approvalList.innerHTML += `
+                        <li class="bg-white border border-emerald-100 p-3 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-700 text-sm">${a.name}</p>
+                                <p class="text-xs text-slate-400">CNIC: ${a.cnic} • Dep: ${a.initialDeposit}</p>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="handleApproval('acc', ${a.id}, true)" class="text-emerald-500 hover:bg-emerald-50 p-1.5 rounded"><i data-lucide="check" class="w-4 h-4"></i></button>
+                                <button onclick="handleApproval('acc', ${a.id}, false)" class="text-red-400 hover:bg-red-50 p-1.5 rounded"><i data-lucide="x" class="w-4 h-4"></i></button>
+                            </div>
+                        </li>
+                    `;
+                });
+            }
+
+            // Tx List
+            const txBody = document.getElementById('mgr-tx-body');
+            txBody.innerHTML = '';
+            if(transactions.length === 0) {
+                document.getElementById('mgr-no-tx').classList.remove('hidden');
+            } else {
+                document.getElementById('mgr-no-tx').classList.add('hidden');
+                transactions.forEach(tx => {
+                    txBody.innerHTML += `
+                        <tr class="bg-white border-b border-slate-50">
+                            <td class="px-6 py-4 font-mono text-xs text-slate-500">${tx.id}</td>
+                            <td class="px-6 py-4 font-bold text-slate-800">$${tx.amount.toLocaleString()}</td>
+                            <td class="px-6 py-4 text-slate-600 text-sm">${tx.requester}</td>
+                            <td class="px-6 py-4 text-slate-400 text-sm">${tx.date}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="handleApproval('tx', '${tx.id}', true)" class="text-sm bg-pink-100 text-pink-700 hover:bg-pink-200 px-3 py-1 rounded font-medium transition-colors">Approve</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Customer DB View (Manager)
+            const dbContainer = document.getElementById('mgr-customer-db');
+            if(customers.length === 0) {
+                 dbContainer.innerHTML = `<div class="p-10 text-center text-slate-400"><i data-lucide="database" class="w-12 h-12 mx-auto mb-3 opacity-20"></i><p>Database is empty.</p></div>`;
+            } else {
+                let html = `<table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-4">Name</th><th class="p-4">CNIC</th><th class="p-4">Type</th><th class="p-4">Balance</th><th class="p-4">Last Dep</th><th class="p-4">Last W/D</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+                customers.forEach(c => {
+                    const ld = c.lastDeposit ? `<div class="text-xs text-slate-500">${c.lastDeposit.date}</div><div class="font-bold text-emerald-600">+$${c.lastDeposit.amount}</div>` : '-';
+                    const lw = c.lastWithdraw ? `<div class="text-xs text-slate-500">${c.lastWithdraw.date}</div><div class="font-bold text-red-500">-$${c.lastWithdraw.amount}</div>` : '-';
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-bold text-slate-800">${c.name}</td>
+                            <td class="p-4 font-mono text-slate-500 text-xs">${c.cnic}</td>
+                            <td class="p-4 text-xs font-bold uppercase tracking-wider text-slate-600">${c.type}</td>
+                            <td class="p-4 font-bold text-slate-800">$${c.balance.toLocaleString()}</td>
+                            <td class="p-4">${ld}</td>
+                            <td class="p-4">${lw}</td>
+                        </tr>
+                    `;
+                });
+                dbContainer.innerHTML = html + `</tbody></table>`;
+            }
+
+            lucide.createIcons();
+        }
+
+        // --- EMPLOYEE VIEWS ---
+        function renderEmployeeViews() {
+            const myTasks = tasks.filter(t => t.assignedTo === currentUser.id && t.status !== 'Completed');
+            const list = document.getElementById('emp-task-list');
+            list.innerHTML = '';
+
+            if(myTasks.length === 0) {
+                document.getElementById('emp-no-tasks').classList.remove('hidden');
+            } else {
+                document.getElementById('emp-no-tasks').classList.add('hidden');
+                myTasks.forEach(t => {
+                    list.innerHTML += `
+                        <li class="bg-white border border-indigo-100 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex justify-between items-center group">
+                            <div class="flex items-start gap-3">
+                                <div class="mt-1">
+                                     <i data-lucide="circle" class="w-4 h-4 text-slate-300"></i>
+                                </div>
+                                <div>
+                                    <p class="text-slate-800 font-medium">${t.desc}</p>
+                                    <span class="text-xs text-indigo-400 font-semibold">${t.priority} Priority</span>
+                                </div>
+                            </div>
+                            <button onclick="completeTask(${t.id})" class="opacity-0 group-hover:opacity-100 bg-indigo-600 text-white px-3 py-1 text-xs rounded shadow transition-all transform translate-x-2 group-hover:translate-x-0">
+                                Complete
+                            </button>
+                        </li>
+                    `;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        // --- ACTIONS ---
+        function handleApproval(type, id, approved) {
+            if(type === 'acc') {
+                const appIndex = accountApprovals.findIndex(a => a.id === id);
+                if (appIndex > -1) {
+                    const app = accountApprovals[appIndex];
+                    if (approved) {
+                        customers.push({
+                            id: app.id,
+                            name: app.name,
+                            cnic: app.cnic,
+                            type: app.type,
+                            balance: app.initialDeposit,
+                            status: 'Active',
+                            lastDeposit: { amount: app.initialDeposit, date: app.date },
+                            lastWithdraw: null
+                        });
+                    }
+                    accountApprovals.splice(appIndex, 1);
+                }
+            } else {
+                const txIndex = transactions.findIndex(t => t.id === id);
+                if (txIndex > -1) {
+                    const tx = transactions[txIndex];
+                    if (approved) {
+                        const cust = customers.find(c => c.name === tx.requester);
+                        if(cust) {
+                            cust.balance += tx.amount;
+                            cust.lastDeposit = { amount: tx.amount, date: new Date().toLocaleDateString() };
+                        }
+                    }
+                    transactions.splice(txIndex, 1);
+                }
+            }
+            
+            if(currentUser.role === 'Manager') renderManagerViews();
+            if(currentUser.role === 'Admin') renderAdminViews();
+            
+            showToast(approved ? 'Approved' : 'Rejected', 'Action processed successfully.');
+        }
+
+        // --- MODAL SYSTEM ---
+        function openModal(type) {
+            const container = document.getElementById('modal-container');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+            
+            container.classList.remove('hidden');
+            
+            if(type === 'manager-modal') {
+                title.innerText = "All Managers";
+                content.innerHTML = renderUserTable('Manager');
+            } else if (type === 'employee-modal') {
+                title.innerText = "All Employees";
+                content.innerHTML = renderUserTable('Employee');
+            } else if (type === 'account-approval-modal') {
+                title.innerText = "Pending Account Approvals";
+                content.innerHTML = renderApprovalTable('acc');
+            } else if (type === 'trans-approval-modal') {
+                title.innerText = "Pending High Value Transactions";
+                content.innerHTML = renderApprovalTable('tx');
+            } else if (type === 'customer-db-modal') {
+                title.innerText = "Customer Database";
+                if(customers.length === 0) {
+                     content.innerHTML = `<div class="p-10 text-center text-slate-400"><i data-lucide="database" class="w-12 h-12 mx-auto mb-3 opacity-20"></i><p>Database is empty.</p></div>`;
+                } else {
+                    let html = `<table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3">Name</th><th class="p-3">CNIC</th><th class="p-3">Type</th><th class="p-3">Balance</th><th class="p-3">Last Dep</th><th class="p-3">Last W/D</th></tr></thead><tbody class="divide-y">`;
+                    customers.forEach(c => {
+                        const ld = c.lastDeposit ? `${c.lastDeposit.date}<br>$${c.lastDeposit.amount}` : '-';
+                        const lw = c.lastWithdraw ? `${c.lastWithdraw.date}<br>$${c.lastWithdraw.amount}` : '-';
+                        html += `<tr><td class="p-3 font-bold">${c.name}</td><td class="p-3 font-mono">${c.cnic}</td><td class="p-3 text-xs uppercase font-bold text-slate-500">${c.type}</td><td class="p-3 font-bold text-emerald-600">$${c.balance.toLocaleString()}</td><td class="p-3 text-xs">${ld}</td><td class="p-3 text-xs">${lw}</td></tr>`;
+                    });
+                    content.innerHTML = html + `</tbody></table>`;
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function renderUserTable(role) {
+            const filtered = users.filter(u => u.role === role);
+            let html = `<table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3">ID</th><th class="p-3">Name</th><th class="p-3">Email</th></tr></thead><tbody class="divide-y">`;
+            filtered.forEach(u => {
+                html += `<tr><td class="p-3 font-mono text-slate-500">${u.id}</td><td class="p-3 font-bold text-slate-700">${u.name}</td><td class="p-3 text-slate-600">${u.email}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        function renderApprovalTable(type) {
+            if(type === 'acc') {
+                if(accountApprovals.length === 0) return `<p class="text-center text-slate-400">No pending accounts.</p>`;
+                let html = `<table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3">Name</th><th class="p-3">Details</th><th class="p-3">Action</th></tr></thead><tbody class="divide-y">`;
+                accountApprovals.forEach(a => {
+                    html += `<tr><td class="p-3 font-bold">${a.name}</td><td class="p-3 text-xs text-slate-500">CNIC:${a.cnic}<br>Dep:${a.initialDeposit}</td><td class="p-3"><button onclick="handleApproval('acc',${a.id},true); closeModal();" class="text-emerald-600 hover:underline">Approve</button></td></tr>`;
+                });
+                return html + '</tbody></table>';
+            } else {
+                 if(transactions.length === 0) return `<p class="text-center text-slate-400">No pending transactions.</p>`;
+                let html = `<table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase text-xs"><tr><th class="p-3">ID</th><th class="p-3">Amount</th><th class="p-3">Requester</th><th class="p-3">Action</th></tr></thead><tbody class="divide-y">`;
+                transactions.forEach(t => {
+                    html += `<tr><td class="p-3 font-mono">${t.id}</td><td class="p-3 font-bold">$${t.amount.toLocaleString()}</td><td class="p-3">${t.requester}</td><td class="p-3"><button onclick="handleApproval('tx','${t.id}',true); closeModal();" class="text-pink-600 hover:underline">Approve</button></td></tr>`;
+                });
+                return html + '</tbody></table>';
+            }
+        }
+
+        function openInboxModal() {
+            const container = document.getElementById('modal-container');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+            
+            container.classList.remove('hidden');
+            title.innerText = "Inbox";
+            
+            const myMsgs = messages.filter(m => m.to === currentUser.id);
+            if(myMsgs.length === 0) {
+                content.innerHTML = `<p class="text-center text-slate-400 py-8">Inbox is empty.</p>`;
+            } else {
+                let html = `<div class="space-y-3">`;
+                myMsgs.forEach(m => {
+                    html += `
+                        <div class="border border-slate-200 p-4 rounded-lg hover:bg-slate-50 transition-colors">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-bold text-slate-800">${m.subject}</span>
+                                <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">From: ${m.from}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">${m.body}</p>
+                            ${currentUser.role === 'Admin' && m.from !== 'Admin' ? 
+                              `<button onclick="openReplyModal('${m.fromId}', '${m.from}', '${m.subject}')" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"><i data-lucide="reply" class="w-3 h-3"></i> Reply</button>` 
+                              : ''}
+                            ${currentUser.role !== 'Admin' ? 
+                              `<button onclick="openReplyModal('${m.fromId}', '${m.from}', '${m.subject}')" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"><i data-lucide="reply" class="w-3 h-3"></i> Reply</button>` 
+                              : ''}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                content.innerHTML = html;
+            }
+            lucide.createIcons(); // Re-render icons in modal
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function updateMessageBadges() {
+            if(!currentUser) return;
+            const count = messages.filter(m => m.to === currentUser.id && !m.read).length;
+            const badgeId = currentUser.role === 'Admin' ? 'admin-msg-badge' : (currentUser.role === 'Manager' ? 'mgr-msg-badge' : 'emp-msg-badge');
+            const badge = document.getElementById(badgeId);
+            if(badge) {
+                if(count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
